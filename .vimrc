@@ -5,6 +5,7 @@ se ts=4
 se shiftwidth=4
 se belloff=all
 se backspace=indent,eol,start
+se shortmess=filnxtToO
 highlight LineNr ctermfg=white
 syntax on
 command W w

@@ -6,7 +6,9 @@ se shiftwidth=4
 se belloff=all
 se backspace=indent,eol,start
 se shortmess=filnxtToO
-highlight LineNr ctermfg=white
+hi LineNr ctermfg=White
+hi Search ctermbg=Cyan
+hi Search ctermfg=White
 syntax on
 command W w
 command Q q

@@ -12,6 +12,7 @@ hi Search ctermfg=White
 syntax on
 command W w
 command Q q
+let g:python_recommended_style=0
 
 " vim-plug ==========================================================
 call plug#begin()

@@ -31,10 +31,6 @@ sudo ./install-programs.sh
 vim を起動し、以下のコマンドを実行
 
 ```
-:CocInstall coc-clangd
-:CocInstall coc-rust-analyzer
-:CocInstall coc-go
-:CocInstall coc-tsserver
-:CocInstall coc-jedi
+:CocInstall coc-clangd coc-rust-analyzer coc-go coc-tsserver coc-jedi
 ```
 

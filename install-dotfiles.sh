@@ -24,15 +24,7 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 	https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
 
 # dotfiles の配置
-DOTFILES=(
-	'.vimrc'
-	'.tmux.conf'
-	'.gitconfig'
-	'.config'
-)
-for DOTFILE in "${DOTFILES[@]}"; do
-	cp -r "${SCRIPT_DIR}/${DOTFILE}" "${HOME}/"
-done
+cp -r "${SCRIPT_DIR}/dotfiles/." "${HOME}"
 
 # .vimrc に書かれているプラグインのインストール
 vim +'PlugInstall --sync' +qa

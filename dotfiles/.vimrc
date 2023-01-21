@@ -7,8 +7,9 @@ se belloff=all
 se backspace=indent,eol,start
 se shortmess=filnxtToO
 hi LineNr ctermfg=White
-hi Search ctermbg=Cyan
-hi Search ctermfg=White
+hi Search ctermbg=Cyan ctermfg=White
+hi Pmenu ctermbg=Black ctermfg=Cyan
+hi PmenuSel ctermbg=Cyan ctermfg=White
 syntax on
 command W w
 command Q q

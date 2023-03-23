@@ -1,8 +1,6 @@
 " common ==========================================================
 se number
 se hlsearch
-se ts=4
-se shiftwidth=4
 se belloff=all
 se backspace=indent,eol,start
 se shortmess=filnxtToO
@@ -14,6 +12,17 @@ syntax on
 command W w
 command Q q
 let g:python_recommended_style=0
+
+" indent ============================================================
+filetype plugin on
+filetype indent on
+autocmd FileType * setlocal shiftwidth=4 softtabstop=4 tabstop=4 noexpandtab
+autocmd FileType javascript setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
+autocmd FileType typescript setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
+autocmd FileType javascriptreact setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
+autocmd FileType typescriptreact setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
+autocmd FileType html setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
+autocmd FileType css setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
 
 " vim-plug ==========================================================
 call plug#begin()

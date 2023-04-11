@@ -23,10 +23,11 @@ autocmd FileType javascriptreact setlocal shiftwidth=2 softtabstop=2 tabstop=2 e
 autocmd FileType typescriptreact setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
 autocmd FileType html setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
 autocmd FileType css setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
+autocmd FileType go setlocal shiftwidth=4 softtabstop=4 tabstop=4 noexpandtab
 
-" autoformat ========================================================                                                                                               
-autocmd BufWritePost *go silent! !go fmt <afile>                                                                                                                    
-autocmd BufWritePost *go edit                                                                                                                                       
+" autoformat ========================================================
+autocmd BufWritePost *go silent! !go fmt <afile>
+autocmd BufWritePost *go edit
 autocmd BufWritePost *go redraw!
 
 " vim-plug ==========================================================

@@ -24,6 +24,11 @@ autocmd FileType typescriptreact setlocal shiftwidth=2 softtabstop=2 tabstop=2 e
 autocmd FileType html setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
 autocmd FileType css setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
 
+" autoformat ========================================================                                                                                               
+autocmd BufWritePost *go silent! !go fmt <afile>                                                                                                                    
+autocmd BufWritePost *go edit                                                                                                                                       
+autocmd BufWritePost *go redraw!
+
 " vim-plug ==========================================================
 call plug#begin()
 Plug 'preservim/nerdtree'

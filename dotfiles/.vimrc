@@ -1,4 +1,6 @@
 " common ==========================================================
+se encoding=utf-8
+se fileencodings=utf-8,cp932,euc-jp,sjis
 se number
 se hlsearch
 se belloff=all

@@ -26,6 +26,7 @@ autocmd FileType typescriptreact setlocal shiftwidth=2 softtabstop=2 tabstop=2 e
 autocmd FileType html setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
 autocmd FileType css setlocal shiftwidth=2 softtabstop=2 tabstop=2 expandtab
 autocmd FileType go setlocal shiftwidth=4 softtabstop=4 tabstop=4 noexpandtab
+autocmd FileType markdown setlocal shiftwidth=4 softtabstop=4 tabstop=4 expandtab
 
 " autoformat ========================================================
 autocmd BufWritePost *go silent! !go fmt <afile>

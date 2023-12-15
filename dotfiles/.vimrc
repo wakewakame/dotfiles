@@ -38,6 +38,7 @@ call plug#begin()
 Plug 'preservim/nerdtree'
 Plug 'neoclide/coc.nvim', {'branch': 'release'}
 Plug 'airblade/vim-gitgutter'
+Plug 'rust-lang/rust.vim'
 call plug#end()
 
 " nerdtree ==========================================================
@@ -75,3 +76,7 @@ nnoremap <silent> <expr> <C-y> coc#float#has_scroll() ?
 se signcolumn=number
 se updatetime=250
 se scl=yes
+
+
+" rust.vim ==========================================================
+let g:rustfmt_autosave = 1

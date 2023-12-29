@@ -10,6 +10,7 @@ hi LineNr ctermfg=White
 hi Search ctermbg=Cyan ctermfg=White
 hi Pmenu ctermbg=Black ctermfg=Cyan
 hi PmenuSel ctermbg=Cyan ctermfg=White
+hi CocInlayHint ctermfg=Yellow ctermbg=Black
 syntax on
 command W w
 command Q q

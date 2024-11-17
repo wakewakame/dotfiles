@@ -26,6 +26,11 @@ curl -fLo ~/.vim/autoload/plug.vim --create-dirs \
 # dotfiles の配置
 cp -r "${SCRIPT_DIR}/dotfiles/." "${HOME}"
 
+# add_dotfiles の配置
+for i in $(find "${SCRIPT_DIR}/add_dotfiles" -type f); do
+	cat "${i}" >> "${HOME}/$(basename ${i})"
+done
+
 # .vimrc に書かれているプラグインのインストール
 vim +'PlugInstall --sync' +qa
 

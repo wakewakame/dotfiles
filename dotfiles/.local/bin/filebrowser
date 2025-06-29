@@ -1,0 +1,10 @@
+#!/bin/sh -eu
+# NOTE: localhost:8000 にファイルサーバーを起動する
+
+docker run \
+  --rm \
+  --mount "type=bind,source=$(pwd),target=/srv,readonly" \
+  -p '127.0.0.1:8000:80' \
+  --user "$(id -u):$(id -g)" \
+  -e FB_NOAUTH=noauth \
+  filebrowser/filebrowser

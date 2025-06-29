@@ -1,0 +1,9 @@
+#!/bin/sh -eu
+# NOTE: localhost:8000 に LLM & チャットサーバーを起動する
+
+docker run \
+  --rm \
+  --name open-webui \
+  -p '127.0.0.1:8000:8080' \
+  -e DEFAULT_MODELS='gemma3:1b' \
+  ghcr.io/open-webui/open-webui:ollama

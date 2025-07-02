@@ -1,10 +1,37 @@
 #!/bin/sh -eu
 # NOTE: localhost:8000 にファイルサーバーを起動する
 
+CONFIG="$(mktemp)"
+echo "config: ${CONFIG}"
+trap "rm -f '${CONFIG}'" EXIT HUP INT TERM
+cat << EOF > "${CONFIG}"
+server:
+  sources:
+    - path: "/srv"
+userDefaults:
+  preview:
+    image: true
+    popup: true
+    video: false
+    office: false
+    highQuality: false
+  darkMode: true
+  disableSettings: false
+  singleClick: false
+  permissions:
+    admin: false
+    modify: false
+    share: false
+    api: false
+auth:
+  methods:
+    noauth: true
+EOF
+
 docker run \
   --rm \
   --mount "type=bind,source=$(pwd),target=/srv,readonly" \
+  --mount "type=bind,source=${CONFIG},target=/home/filebrowser/config.yaml,readonly" \
   -p '127.0.0.1:8000:80' \
   --user "$(id -u):$(id -g)" \
-  -e FB_NOAUTH=noauth \
-  filebrowser/filebrowser
+  gtstef/filebrowser:beta

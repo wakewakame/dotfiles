@@ -33,4 +33,4 @@ done
 
 # .vimrc に書かれているプラグインのインストール
 vim +'PlugInstall --sync' +qa
-
+vim +'CocInstall -sync coc-clangd coc-rust-analyzer coc-go coc-tsserver coc-jedi' +qa

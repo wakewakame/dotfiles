@@ -23,14 +23,3 @@ cd dotfiles
 sudo ./install-programs.sh
 ./install-dotfiles.sh
 ```
-
-# 手動で必要な作業 (自動化する方法がわからなかった...)
-
-## language server のインストール
-
-vim を起動し、以下のコマンドを実行
-
-```
-:CocInstall coc-clangd coc-rust-analyzer coc-go coc-tsserver coc-jedi
-```
-

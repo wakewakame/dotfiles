@@ -25,7 +25,9 @@ apt install -y \
 	vim \
 	tmux \
 	nodejs \
-	npm
+	npm \
+	manpages-ja \    # man を日本語化する用
+	manpages-ja-dev  # man を日本語化する用
 
 # coc.nvim に必要
 # https://github.com/neoclide/coc.nvim

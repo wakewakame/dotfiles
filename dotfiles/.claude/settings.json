@@ -1,0 +1,32 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ffplay -nodisp -autoexit -loglevel quiet -f lavfi 'aevalsrc=((sin(8009*t)*exp(-3*t)*2+sin(20839*t)*exp(-2*t)*3+sin(36574*t)*exp(-4*t)*5+sin(55854*t)*exp(-10*t)*10+sin(77615*t)*exp(-12*t)*5)*(1-exp(-500*t))/50):d=3' &"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ffplay -nodisp -autoexit -loglevel quiet -f lavfi 'aevalsrc=((sin(8009*t)*exp(-3*t)*2+sin(20839*t)*exp(-2*t)*3+sin(36574*t)*exp(-4*t)*5+sin(55854*t)*exp(-10*t)*10+sin(77615*t)*exp(-12*t)*5)*(1-exp(-500*t))/50):d=3' &"
+          }
+        ]
+      }
+    ]
+  },
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "typescript-lsp@claude-plugins-official": true,
+    "gopls-lsp@claude-plugins-official": true
+  },
+  "theme": "dark-daltonized"
+}

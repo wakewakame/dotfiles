@@ -6,6 +6,8 @@ se hlsearch
 se belloff=all
 se backspace=indent,eol,start
 se shortmess=filnxtToO
+se wildmenu
+se wildmode=longest:full,full
 hi LineNr ctermfg=White
 hi Search ctermbg=Cyan ctermfg=White
 hi Pmenu ctermbg=Black ctermfg=Cyan

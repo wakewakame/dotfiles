@@ -24,13 +24,10 @@ apt install -y \
 	curl \
 	vim \
 	tmux \
-	nodejs \
-	npm \
 	manpages-ja \    # man を日本語化する用
 	manpages-ja-dev  # man を日本語化する用
 
 # coc.nvim に必要
 # https://github.com/neoclide/coc.nvim
-npm install -g n
-n stable
-
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+nvm install stable

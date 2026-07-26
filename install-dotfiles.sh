@@ -34,3 +34,5 @@ done
 # .vimrc に書かれているプラグインのインストール
 vim +'PlugInstall --sync' +qa
 vim +'CocInstall -sync coc-clangd coc-rust-analyzer coc-tsserver coc-jedi' +qa
+git clone --depth=1 https://github.com/github/copilot.vim.git \
+	~/.vim/pack/github/start/copilot.vim

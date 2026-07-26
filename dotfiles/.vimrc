@@ -17,6 +17,7 @@ syntax on
 command W w
 command Q q
 let g:python_recommended_style=0
+se re=0 " .ts を開いた時に 'redrawtime' exceeded, syntax highlighting disabled と出てフリーズする問題の回避
 
 " indent ============================================================
 filetype plugin on

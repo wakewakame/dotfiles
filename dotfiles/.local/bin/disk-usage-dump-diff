@@ -1,0 +1,107 @@
+#!/usr/bin/env python3
+
+import os
+import signal
+import sys
+
+# less などにパイプして途中で閉じられたときは、traceback を出さずに終了する
+signal.signal(signal.SIGPIPE, signal.SIG_DFL)
+
+
+def usage(status):
+	"""使い方を表示して終了する（エラー時は stderr に出す）"""
+	name = os.path.basename(sys.argv[0])
+	print(
+		"usage: {} <A> <B>\n"
+		"\n"
+		"du のダンプ 2 つを比較し、共通するパスの増分を大きい順に出力する。\n"
+		"\n"
+		"  <A>  比較元のダンプファイル\n"
+		"  <B>  比較先のダンプファイル\n".format(name),
+		end="",
+		file=sys.stderr if status else sys.stdout,
+	)
+	sys.exit(status)
+
+
+args = sys.argv[1:]
+if any(arg in ("-h", "--help") for arg in args):
+	usage(0)
+if len(args) != 2:
+	print("error: 引数は 2 つ指定してください（{} 個指定されています）".format(len(args)), file=sys.stderr)
+	usage(2)
+
+A, B = args
+
+# A, B はそれぞれ以下のような内容
+#
+#   $ cat "$A"
+#   1000	/path/to/file1
+#   2000	/path/to/file2
+#   3000	/path/to
+#   3000	/path
+#   3000	/
+#
+#   real	0m1.000s
+#   user	0m0.100s
+#   sys	0m1.000s
+#
+# なお、サイズはバイト単位ではなく KiB 単位で出力されているので、読み込む際に 1024 倍する
+# これを、A, B それぞれ共通のパスの行のみを抽出し、それらの増分を計算してソートし、結果を出力する
+
+def load(path):
+	"""`<サイズ>\tパス` の行だけを {パス: サイズ} として読み込む"""
+	usage = {}
+	with open(path, encoding="utf-8", errors="replace") as f:
+		for line in f:
+			line = line.rstrip("\n")
+			size, sep, name = line.partition("\t")
+			if not sep:
+				continue
+			try:
+				size = int(size)
+			except ValueError:
+				# real/user/sys などサイズ以外の行は無視する
+				continue
+			usage[name] = size * 1024
+	return usage
+
+
+def human(size, showSign):
+	"""差分をバイト単位とみなして人が読みやすい形に整形する"""
+	sign = ("-" if size < 0 else "+") if showSign else ""
+	size = abs(size)
+	for unit in ("B", "K", "M", "G", "T", "P"):
+		if size < 1024 or unit == "P":
+			fmt = "{:.0f}" if unit == "B" or size >= 100 else "{:.1f}"
+			return sign + fmt.format(size) + unit
+		size /= 1024
+	raise AssertionError("unreachable")
+
+
+def main():
+	try:
+		a = load(A)
+		b = load(B)
+	except OSError as e:
+		print("error: {}: {}".format(e.filename, e.strerror), file=sys.stderr)
+		sys.exit(1)
+
+	diffs = []
+	for name, before in a.items():
+		if name not in b:
+			continue
+		diff = b[name] - before
+		if diff == 0:
+			continue
+		diffs.append((diff, name, before, b[name]))
+
+	# 増加が大きい順に並べる
+	diffs.sort(key=lambda row: (-row[0], row[1]))
+
+	print("diff\tnow\tpath")
+	for diff, name, before, after in diffs:
+		print("{}\t{}\t{}".format(human(diff, True), human(after, False), name))
+
+if __name__ == "__main__":
+	main()

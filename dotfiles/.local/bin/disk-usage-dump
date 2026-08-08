@@ -6,8 +6,8 @@ set -u
 #
 # NOTE:
 #   $HOME から 2 階層までのディレクトリのみを大きい順に表示する例。
-#   grep -E "^[0-9]+\s+${HOME}(\/[^/]+){2}\$" ~/.disk-usage-history/19700101-000000.txt | column -t -s $'\t' | sort -hr
+#   zgrep -E "^[0-9]+\s+${HOME}(\/[^/]+){2}\$" ~/.disk-usage-history/19700101-000000.txt.gz | column -t -s $'\t' | sort -hr
 
 OUT="${HOME}/.disk-usage-history"
 mkdir -p "${OUT}"
-{ time du -kx / 2>/dev/null; } 2>&1 | tee "${OUT}/$(date '+%Y%m%d-%H%M%S').txt"
+{ time du -kx / 2>/dev/null; } 2>&1 | gzip > "${OUT}/$(date '+%Y%m%d-%H%M%S').txt.gz"

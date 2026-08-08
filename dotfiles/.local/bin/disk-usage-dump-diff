@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
+import gzip
 import os
 import signal
 import sys
+import zlib
 
 # less などにパイプして途中で閉じられたときは、traceback を出さずに終了する
 signal.signal(signal.SIGPIPE, signal.SIG_DFL)
@@ -12,12 +14,18 @@ def usage(status):
 	"""使い方を表示して終了する（エラー時は stderr に出す）"""
 	name = os.path.basename(sys.argv[0])
 	print(
-		"usage: {} <A> <B>\n"
+		"usage: {} [<A>] <B>\n"
 		"\n"
-		"du のダンプ 2 つを比較し、共通するパスの増分を大きい順に出力する。\n"
+		"du のダンプ 2 つを比較し、パスごとの増分を木構造の順に出力する。\n"
+		"並び順は同じ親を持つもの同士の中で増分が大きい順。\n"
+		"片方にしか無いパスは、無い側のサイズを 0 として扱う。\n"
+		"<A> を省略すると空のダンプとの比較になり、<B> の内訳をそのまま表示する。\n"
 		"\n"
-		"  <A>  比較元のダンプファイル\n"
-		"  <B>  比較先のダンプファイル\n".format(name),
+		"  <A>  比較元のダンプファイル（gzip 圧縮されていても可、省略可）\n"
+		"  <B>  比較先のダンプファイル（gzip 圧縮されていても可）\n"
+		"\n"
+		"出力の 1 列目は階層の深さ。less で \"/^1 \" のように検索して n を繰り返すと、\n"
+		"子や孫を読み飛ばして同じ深さの行だけを辿れる。\n".format(name),
 		end="",
 		file=sys.stderr if status else sys.stdout,
 	)
@@ -27,11 +35,12 @@ def usage(status):
 args = sys.argv[1:]
 if any(arg in ("-h", "--help") for arg in args):
 	usage(0)
-if len(args) != 2:
-	print("error: 引数は 2 つ指定してください（{} 個指定されています）".format(len(args)), file=sys.stderr)
+if not 1 <= len(args) <= 2:
+	print("error: 引数は 1 つか 2 つ指定してください（{} 個指定されています）".format(len(args)), file=sys.stderr)
 	usage(2)
 
-A, B = args
+# 引数が 1 つのときは比較元を省略したものとみなす
+A, B = args if len(args) == 2 else (None, args[0])
 
 # A, B はそれぞれ以下のような内容
 #
@@ -47,12 +56,21 @@ A, B = args
 #   sys	0m1.000s
 #
 # なお、サイズはバイト単位ではなく KiB 単位で出力されているので、読み込む際に 1024 倍する
-# これを、A, B それぞれ共通のパスの行のみを抽出し、それらの増分を計算してソートし、結果を出力する
+# これを、A, B それぞれのパスの増分を計算し、木構造に組み直して出力する
+# 兄弟同士の中だけで増分の大きい順に並べるので、親のすぐ下にその子孫がぶら下がる形になる
+
+def open_dump(path):
+	"""gzip 圧縮されていれば展開しつつテキストとして開く（拡張子ではなく中身で判定する）"""
+	with open(path, "rb") as f:
+		compressed = f.read(2) == b"\x1f\x8b"
+	opener = gzip.open if compressed else open
+	return opener(path, "rt", encoding="utf-8", errors="replace")
+
 
 def load(path):
 	"""`<サイズ>\tパス` の行だけを {パス: サイズ} として読み込む"""
 	usage = {}
-	with open(path, encoding="utf-8", errors="replace") as f:
+	with open_dump(path) as f:
 		for line in f:
 			line = line.rstrip("\n")
 			size, sep, name = line.partition("\t")
@@ -67,6 +85,16 @@ def load(path):
 	return usage
 
 
+def load_or_exit(path):
+	"""load() を呼び、読み込めなければ traceback ではなくエラーメッセージを出して終了する"""
+	try:
+		return load(path)
+	except (OSError, EOFError, zlib.error) as e:
+		# gzip の展開エラー（EOFError, zlib.error）は strerror を持たないので例外本文を出す
+		print("error: {}: {}".format(path, getattr(e, "strerror", None) or e), file=sys.stderr)
+		sys.exit(1)
+
+
 def human(size, showSign):
 	"""差分をバイト単位とみなして人が読みやすい形に整形する"""
 	sign = ("-" if size < 0 else "+") if showSign else ""
@@ -79,29 +107,96 @@ def human(size, showSign):
 	raise AssertionError("unreachable")
 
 
+def display_path(path, has_children):
+	"""子を持つパスは末尾に / を付けて、ディレクトリだと分かるようにする"""
+	if not has_children or path.endswith("/"):
+		return path
+	return path + "/"
+
+
+def is_ancestor(parent, child):
+	"""parent が child の祖先パスかどうか（"/pathx" を "/path" の子と誤判定しないようにする）"""
+	if parent == child:
+		return False
+	return child.startswith(parent if parent.endswith("/") else parent + "/")
+
+
+def build_tree(paths):
+	"""パスの集合から木を作り (根のリスト, 親→子のリスト) を返す
+
+	ダンプに中間ディレクトリが含まれていない場合は、存在する中で最も近い祖先の子として繋ぐ。
+	"""
+	children = {path: [] for path in paths}
+	roots = []
+	stack = []
+	# 辞書順に並べると祖先は必ず子孫より先に現れる
+	for path in sorted(paths):
+		while stack and not is_ancestor(stack[-1], path):
+			stack.pop()
+		(children[stack[-1]] if stack else roots).append(path)
+		stack.append(path)
+	return roots, children
+
+
 def main():
-	try:
-		a = load(A)
-		b = load(B)
-	except OSError as e:
-		print("error: {}: {}".format(e.filename, e.strerror), file=sys.stderr)
-		sys.exit(1)
+	a = load_or_exit(A) if A is not None else {}
+	b = load_or_exit(B)
 
-	diffs = []
-	for name, before in a.items():
-		if name not in b:
-			continue
-		diff = b[name] - before
-		if diff == 0:
-			continue
-		diffs.append((diff, name, before, b[name]))
+	# 片方のダンプにしか無いパスは、無い側のサイズを 0 とみなして増減を計算する
+	# （B にしか無ければ丸ごと増分に、A にしか無ければ丸ごと減分になる）
+	diff = {path: b.get(path, 0) - a.get(path, 0) for path in a.keys() | b.keys()}
 
-	# 増加が大きい順に並べる
-	diffs.sort(key=lambda row: (-row[0], row[1]))
+	roots, children = build_tree(diff.keys())
 
-	print("diff\tnow\tpath")
-	for diff, name, before, after in diffs:
-		print("{}\t{}\t{}".format(human(diff, True), human(after, False), name))
+	# 行き掛け順に並べ、それを逆にたどることで子を親より先に処理する
+	order = []
+	stack = list(roots)
+	while stack:
+		path = stack.pop()
+		order.append(path)
+		stack.extend(children[path])
+
+	# 増減のないパスは、増減のある子孫を持つ場合だけ階層を示すために残す
+	keep = {}
+	for path in reversed(order):
+		keep[path] = diff[path] != 0 or any(keep[child] for child in children[path])
+
+	# 兄弟の中だけで、増加が大きい順に並べる
+	def sort_key(path):
+		return (-diff[path], path)
+
+	# 親のすぐ後ろにその子孫が並ぶよう、木を深さ優先でたどって表示順を決める
+	rows = []
+	stack = [(path, 0) for path in sorted(filter(keep.get, roots), key=sort_key, reverse=True)]
+	while stack:
+		path, depth = stack.pop()
+		rows.append((path, depth))
+		kids = sorted(filter(keep.get, children[path]), key=sort_key, reverse=True)
+		stack.extend((kid, depth + 1) for kid in kids)
+
+	# 1 列目に階層の深さを出す
+	# 深さは左寄せなので、less で "/^1 " と検索して n を繰り返せば同じ深さの行だけを辿れる
+	cells = [
+		(
+			str(depth),
+			human(diff[path], True),
+			human(b.get(path, 0), False),
+			display_path(path, children[path]),
+		)
+		for path, depth in rows
+	]
+	if not cells:
+		return
+	depth_width = max(len(cell[0]) for cell in cells)
+	diff_width = max(len(cell[1]) for cell in cells)
+	after_width = max(len(cell[2]) for cell in cells)
+	for depth_cell, diff_cell, after_cell, name in cells:
+		print("{} {} {} {}".format(
+			depth_cell.ljust(depth_width),
+			diff_cell.ljust(diff_width),
+			after_cell.ljust(after_width),
+			name,
+		))
 
 if __name__ == "__main__":
 	main()

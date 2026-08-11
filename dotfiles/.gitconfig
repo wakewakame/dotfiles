@@ -3,3 +3,7 @@
 	name = wakewakame
 [core]
 	editor = vim
+[commit]
+	gpgsign = true
+[gpg]
+	format = ssh
